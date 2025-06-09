@@ -21,13 +21,19 @@ def upload_and_process():
             dark_files = request.files.getlist("dark")
             science_files = request.files.getlist("science")
 
+            print(science_files)
+
             # Validate required uploads
             if not science_files or all(f.filename == '' for f in science_files):
                 flash("Please upload at least one science FITS file.")
                 return render_template("index.html")
 
-            if not bias_files or all(f.filename == '' for f in bias_files):
-                flash("Please upload at least one bias frame.")
+            if not flat_files or all(f.filename == '' for f in flat_files):
+                flash("Please upload at least one flat frame.")
+                return render_template("index.html")
+            
+            if not dark_files or all(f.filename == '' for f in dark_files):
+                flash("Please upload at least one dark frame.")
                 return render_template("index.html")
 
             def save_files(files, prefix):
@@ -77,8 +83,11 @@ def upload_and_process():
             flash(f"Unexpected error: {str(e)}")
             return render_template("index.html")
 
-        finally:
+        @after_this_request
+        def cleanup(response):
             shutil.rmtree(temp_dir)
+            return response
+
 
     # For GET requests or after errors, render with current session filenames
     return render_template("index.html")
@@ -103,4 +112,4 @@ def remove_file():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

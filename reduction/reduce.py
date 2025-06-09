@@ -1,10 +1,10 @@
 import os
 import shutil
+import tempfile
 import glob
 from reduction.bias import create_median_bias
 from reduction.darks import create_median_dark
 from reduction.flats import create_median_flat
-from reduction.ptc import calculate_gain, calculate_readout_noise
 from reduction.science import reduce_science_frame
 
 def reduce_science_images(bias_paths, flat_paths, dark_paths, science_paths, output_dir):
@@ -22,6 +22,7 @@ def reduce_science_images(bias_paths, flat_paths, dark_paths, science_paths, out
     - List of file paths to reduced science images saved in output_dir
     """
 
+    temp_dir = tempfile.mkdtemp()
 
     # Collects all the different types of images from the given directory, and sorts them in a list
     bias_files = sorted(bias_paths)
@@ -30,30 +31,23 @@ def reduce_science_images(bias_paths, flat_paths, dark_paths, science_paths, out
     science_files = science_paths
 
     # Naming of the median filenames for the biases, darks, and flats
-    median_bias_filename = 'Median-Bias.fits'
-    median_dark_filename = 'Median-Dark.fits'
-    median_flat_filename = 'Median-AutoFlat.fits'
+    median_bias_filename = os.path.join(temp_dir, 'Median-Bias.fits')
+    median_dark_filename = os.path.join(temp_dir, 'Median-Dark.fits')
+    median_flat_filename = os.path.join(temp_dir, 'Median-AutoFlat.fits')
 
     # Creates the medians from the list of biases, darks, and flats
     median_bias = create_median_bias(bias_files, median_bias_filename)
     median_dark = create_median_dark(dark_files, median_bias_filename, median_dark_filename)
     median_flat = create_median_flat(flat_files, median_bias_filename, median_flat_filename, median_dark_filename)
-    
-    # Calculates and prints out the gain and readout noise from the list of flats and biases, respectively
-    gain = calculate_gain(flat_files)
-    print(f"Gain = {gain:.2f} e-/ADU")
-
-    readout_noise = calculate_readout_noise(bias_files, gain)
-    print(f"Readout Noise = {readout_noise:.2f} e-")
-
+  
     reduced_paths = []
-
+    
     for science_filename in science_files:
         basename = os.path.basename(science_filename)
         name, ext = os.path.splitext(basename)
         reduced_filename = f"reduced_{name}{ext}"
         reduced_filepath = os.path.join(output_dir, reduced_filename)
-
+        
         reduce_science_frame(
             science_filename,
             median_bias_filename,
@@ -61,7 +55,7 @@ def reduce_science_images(bias_paths, flat_paths, dark_paths, science_paths, out
             median_dark_filename,
             reduced_science_filename=reduced_filepath
         )
-
+        
         reduced_paths.append(reduced_filepath)
 
     return reduced_paths

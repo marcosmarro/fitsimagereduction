@@ -139,6 +139,14 @@
       padding: 0 0.75rem;
     }
 
+    .required-asterisk {
+      color: #d32f2f;
+      font-weight: bold;
+      margin-right: 0.1rem;
+      font-size: 1rem;
+    }
+
+
     /* File list */
     .file-list {
     width: 100%;
@@ -225,6 +233,19 @@
 <body>
   <header>FITS Image Reduction</header>
 
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div style="margin: 1rem auto; max-width: 700px;">
+        {% for message in messages %}
+          <div style="background: #ffe0e0; color: #900; border: 1px solid #faa; padding: 1rem; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 0.5rem;">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+
   <form method="POST" enctype="multipart/form-data" id="upload-form" novalidate>
 
     <section>
@@ -244,25 +265,16 @@
     <main>
       <div class="upload-card science" tabindex="0" aria-label="Upload science frames">
         <div class="upload-title">Science</div>
-        <div class="upload-subtitle">Required</div>
+        <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
         <div class="upload-instructions">Drag & drop or click here to select files</div>
         <input id="science-input" name="science" type="file" multiple accept=".fits" />
         <span class="file-count" id="science-count" aria-live="polite" aria-atomic="true">0</span>
         <ul class="file-list" id="science-list"></ul>
       </div>
 
-      <div class="upload-card bias" tabindex="0" aria-label="Upload bias frames">
-        <div class="upload-title">Bias</div>
-        <div class="upload-subtitle">Required</div>
-        <div class="upload-instructions">Drag & drop or click here to select files</div>
-        <input id="bias-input" name="bias" type="file" multiple accept=".fits" />
-        <span class="file-count" id="bias-count" aria-live="polite" aria-atomic="true">0</span>
-        <ul class="file-list" id="bias-list"></ul>
-      </div>
-
       <div class="upload-card flat" tabindex="0" aria-label="Upload flat frames">
         <div class="upload-title">Flat</div>
-        <div class="upload-subtitle">Optional</div>
+        <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
         <div class="upload-instructions">Drag & drop or click here to select files</div>
         <input id="flat-input" name="flat" type="file" multiple accept=".fits" />
         <span class="file-count" id="flat-count" aria-live="polite" aria-atomic="true">0</span>
@@ -271,11 +283,20 @@
 
       <div class="upload-card dark" tabindex="0" aria-label="Upload dark frames">
         <div class="upload-title">Dark</div>
-        <div class="upload-subtitle">Optional</div>
+        <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
         <div class="upload-instructions">Drag & drop or click here to select files</div>
         <input id="dark-input" name="dark" type="file" multiple accept=".fits" />
         <span class="file-count" id="dark-count" aria-live="polite" aria-atomic="true">0</span>
         <ul class="file-list" id="dark-list"></ul>
+      </div>
+
+      <div class="upload-card bias" tabindex="0" aria-label="Upload bias frames">
+        <div class="upload-title">Bias</div>
+        <div class="upload-subtitle">Optional</div>
+        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <input id="bias-input" name="bias" type="file" multiple accept=".fits" />
+        <span class="file-count" id="bias-count" aria-live="polite" aria-atomic="true">0</span>
+        <ul class="file-list" id="bias-list"></ul>
       </div>
     </main>
 
@@ -293,6 +314,8 @@
       flat: new DataTransfer(),
       dark: new DataTransfer(),
     };
+
+    let startTime = performance.now(); // Start time tracking
 
     categories.forEach(cat => {
       const input = document.getElementById(`${cat}-input`);
@@ -321,14 +344,15 @@
             categoryFiles[cat].items.remove(i);
             input.files = categoryFiles[cat].files;
             updateFileList();
+            updateSummary();
           });
 
           li.appendChild(btn);
           fileList.appendChild(li);
         }
+        updateSummary();
       }
 
-      // Add files avoiding duplicates
       function addFiles(newFiles) {
         for (const file of newFiles) {
           if (![...categoryFiles[cat].files].some(f => f.name === file.name)) {
@@ -339,10 +363,7 @@
         updateFileList();
       }
 
-      // Clicking card triggers input
       card.addEventListener('click', () => input.click());
-
-      // Drag & drop handlers
       card.addEventListener('dragover', (e) => {
         e.preventDefault();
         card.style.boxShadow = `0 0 20px 5px var(--card-color)`;
@@ -356,14 +377,22 @@
         card.style.boxShadow = '';
         addFiles(e.dataTransfer.files);
       });
-
-      // File input change
       input.addEventListener('change', (e) => {
         addFiles(e.target.files);
       });
 
       updateFileList();
     });
+
+    // Update summary (file count + time)
+    function updateSummary() {
+      const totalFiles = categories.reduce((sum, cat) => sum + categoryFiles[cat].files.length, 0);
+      const elapsedMs = performance.now() - startTime;
+      const elapsedSec = (elapsedMs / 1000).toFixed(2);
+      const summary = document.getElementById('upload-summary');
+      summary.textContent = `${totalFiles} total file${totalFiles !== 1 ? 's' : ''} uploaded in ${elapsedSec} seconds.`;
+    }
   </script>
+
 </body>
 </html>

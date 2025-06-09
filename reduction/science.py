@@ -6,6 +6,7 @@
 
 from astropy.io import fits
 from astroscrappy import detect_cosmics
+import os
 
 def reduce_science_frame(
     science_filename,
@@ -35,39 +36,33 @@ def reduce_science_frame(
     - Return the reduced science frame as a 2D numpy array.
 
     """
-
+    
     # Reads all the files and grabs their respective array
     science = fits.open(science_filename)
-    JD = science[0].header['JD-OBS']
 
     science_data = science[0].data[100:-100, 100:-100].astype('f4')
-    median_bias = fits.getdata(median_bias_filename)
-
-    if median_flat_filename:
-      median_flat = fits.getdata(median_flat_filename)
-    if median_bias_filename:
-      median_dark = fits.getdata(median_dark_filename)
 
     # Exposure time of science to later use with median dark 
     exposure_time = science[0].header['EXPTIME']
-
+    
     # Removes bias and dark frames, and corrects by dividing by flat frame
-    science_data -= median_bias 
+    if os.path.isfile(median_bias_filename):
+      median_bias = fits.getdata(median_bias_filename)
+      science_data -= median_bias 
+    
+    median_dark = fits.getdata(median_dark_filename)
+    science_data -= exposure_time * median_dark
 
-    if median_dark:
-      science_data -= exposure_time * median_dark
-
-    if median_flat:
-      science_data /= median_flat
-
+    median_flat = fits.getdata(median_flat_filename)
+    science_data /= median_flat
+    
     # Removal of cosmic rays
     mask, cleaned = detect_cosmics(science_data)
     reduced_science = cleaned
 
     # Create a new FITS file from the resulting reduced science frame.
-    science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=fits.Header())
+    science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=science[0].header)
     science_hdu.header['COMMENT'] = 'Reduced science image correcting from all 3 frames (bias, dark, and flat).'
-    science_hdu.header['JD-OBS'] = JD
     hdul = fits.HDUList([science_hdu])
     hdul.writeto(reduced_science_filename, overwrite=True)
 
