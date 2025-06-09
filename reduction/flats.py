@@ -36,7 +36,7 @@ def create_median_flat(
     - Return the normalised median flat frame as a 2D numpy array.
 
     """
-    if flat_list and bias_filename:
+    if flat_list:
       bias = fits.getdata(bias_filename)
 
       if dark_filename:

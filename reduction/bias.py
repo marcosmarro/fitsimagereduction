@@ -23,26 +23,22 @@ def create_median_bias(bias_list, median_bias_filename):
 
     """
     
-    if bias_list:
-      bias_images = []
-      
-      # Will read each file and append to bias_images list where the arrays have dtype = float32
-      for bias in bias_list:
-          bias_data = fits.getdata(bias)[100:-100, 100:-100]
-          bias_images.append(bias_data.astype('f4'))
-
-      # Reads the list of biases and sigma clips the arrays
-      bias_images_masked = sigma_clip(bias_images, cenfunc='median', sigma=3, axis=0) 
-
-      # Creates a final 2D array that is the mean of each pixel from all different biases
-      median_bias = numpy.ma.mean(bias_images_masked, axis=0)
-
-      # Create a new FITS file from the resulting median bias frame.
-      # You can replace the header with something more meaningful with information.
-      primary = fits.PrimaryHDU(data=median_bias.data, header=fits.Header())
-      hdul = fits.HDUList([primary])
-      hdul.writeto(median_bias_filename, overwrite=True)
-      return median_bias
+    bias_images = []
     
-    else:
-       return
+    # Will read each file and append to bias_images list where the arrays have dtype = float32
+    for bias in bias_list:
+        bias_data = fits.getdata(bias)[100:-100, 100:-100]
+        bias_images.append(bias_data.astype('f4'))
+
+    # Reads the list of biases and sigma clips the arrays
+    bias_images_masked = sigma_clip(bias_images, cenfunc='median', sigma=3, axis=0) 
+
+    # Creates a final 2D array that is the mean of each pixel from all different biases
+    median_bias = numpy.ma.mean(bias_images_masked, axis=0)
+
+    # Create a new FITS file from the resulting median bias frame.
+    # You can replace the header with something more meaningful with information.
+    primary = fits.PrimaryHDU(data=median_bias.data, header=fits.Header())
+    hdul = fits.HDUList([primary])
+    hdul.writeto(median_bias_filename, overwrite=True)
+    return median_bias

@@ -1,251 +1,368 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Image Reduction Upload</title>
+  <title>Image Reduction Upload — Clean Row</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f7f9fc;
-      color: #333;
-      margin: 0; padding: 2rem;
-      display: flex; flex-direction: column; align-items: center;
+      margin: 0;
+      background: linear-gradient(135deg, #f0f4ff, #ffffff);
+      font-family: 'Poppins', sans-serif;
+      color: #222;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
       min-height: 100vh;
     }
 
-    h1 {
-      margin-bottom: 1.5rem;
-    }
-
-    form {
-      width: 100%;
-      max-width: 600px;
-      background: white;
-      border-radius: 8px;
-      padding: 2rem;
-      box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
-    }
-
-    .dropzone {
-      border: 2px dashed #777;
-      border-radius: 6px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
+    header {
+      padding: 0rem 0rem 0rem;
       text-align: center;
+      font-weight: 600;
+      font-size: 3rem;
+      color: #0c1a48;
+      user-select: none;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 4px #a0b4ff80;
+    }
+
+    main {
+      flex-grow: 1;
+      padding: 1rem 1.5rem 6rem;
+      max-width: 1400px;
+      margin: 0 auto;
+
+      /* Make a single row with 4 columns, no wrapping */
+      display: flex;
+      gap: 1.75rem;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+    }
+
+    /* Card styles */
+    .upload-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow:
+        0 4px 8px rgba(12, 26, 72, 0.07),
+        0 12px 24px rgba(12, 26, 72, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2.5rem 1.5rem 2rem;
       cursor: pointer;
-      transition: border-color 0.3s;
-      background: #fafafa;
+      transition:
+        box-shadow 0.3s ease,
+        transform 0.2s ease;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+
+      /* equal width */
+      flex: 1 1 0;
+      min-width: 0;
+      max-width: 350px;
+    }
+    .upload-card:hover,
+    .upload-card:focus-within {
+      box-shadow:
+        0 6px 15px rgba(12, 26, 72, 0.12),
+        0 20px 45px rgba(12, 26, 72, 0.16);
+      transform: translateY(-6px);
+      outline: none;
+    }
+
+    /* Category colors */
+    .science { --card-color: #3f51b5; }
+    .bias    { --card-color: #ff5722; }
+    .flat    { --card-color: #009688; }
+    .dark    { --card-color: #607d8b; }
+
+    /* Removed icons */
+
+    /* Card header */
+    .upload-title {
+      font-weight: 600;
+      font-size: 1.6rem;
+      color: var(--card-color);
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      user-select: none;
+    }
+    .upload-subtitle {
+      font-weight: 400;
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 1rem;
+      font-style: italic;
       user-select: none;
     }
 
-    .dropzone.dragover {
-      border-color: #007bff;
-      background: #e6f0ff;
+    /* File count badge */
+    .file-count {
+      background: var(--card-color);
+      color: white;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.9rem;
+      border-radius: 9999px;
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      user-select: none;
+      pointer-events: none;
+      transition: background-color 0.3s ease;
     }
 
-    .dropzone input[type="file"] {
+    /* Hidden file input */
+    input[type="file"] {
       display: none;
     }
 
-    .file-list {
-      margin-top: 0.75rem;
-      font-size: 0.9rem;
-      color: #555;
-      max-height: 100px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 0.5rem;
-      background: #f0f0f0;
+    /* Instructions */
+    .upload-instructions {
+      font-size: 1rem;
+      color: #444;
+      user-select: none;
+      text-align: center;
+      margin-bottom: 1rem;
+      padding: 0 0.75rem;
     }
 
-    .file-list ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    /* File list */
+    .file-list {
+    width: 100%;
+    max-height: calc(15 * 1.6em); /* estimate ~1.6em per item */
+    overflow-y: auto;
+    margin-top: auto;
+    padding-left: 0;
+    list-style: none;
+    border-top: 1px solid #eee;
+    font-size: 0.9rem;
     }
+
 
     .file-list li {
+      padding: 0.35rem 0.4rem;
+      border-bottom: 1px solid #f0f0f0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.25rem;
+      color: #333;
+      transition: opacity 0.3s ease;
+    }
+    .file-list li:last-child {
+      border-bottom: none;
     }
 
-    .remove-file-btn {
+    /* Remove button */
+    .remove-btn {
       background: transparent;
       border: none;
-      color: #d6336c;
-      font-weight: bold;
-      font-size: 1.2rem;
+      color: var(--card-color);
+      font-weight: 700;
       cursor: pointer;
-      padding: 0 0.5rem;
+      font-size: 1.2rem;
+      padding: 0;
       line-height: 1;
       user-select: none;
-      transition: color 0.3s;
+      transition: color 0.2s ease;
+    }
+    .remove-btn:hover,
+    .remove-btn:focus {
+      color: #000;
+      outline: none;
     }
 
-    .remove-file-btn:hover {
-      color: #a71d2a;
+    /* Footer sticky submit */
+    footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #ddd;
+      padding: 1rem 1.5rem;
+      box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      justify-content: center;
+      z-index: 999;
     }
-
-    button {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1.1rem;
-      background: #007bff;
-      color: white;
+    button[type="submit"] {
+      background: #3f51b5;
       border: none;
-      border-radius: 6px;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      padding: 1rem 3rem;
+      border-radius: 30px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      box-shadow: 0 5px 15px rgba(63, 81, 181, 0.4);
+      transition:
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+      user-select: none;
+      letter-spacing: 0.04em;
     }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    .flash-message {
-      color: #d6336c;
-      margin-bottom: 1rem;
-      font-weight: 600;
-      text-align: center;
+    button[type="submit"]:hover,
+    button[type="submit"]:focus {
+      background-color: #2c3e99;
+      box-shadow: 0 7px 25px rgba(44, 62, 153, 0.6);
+      outline: none;
     }
   </style>
 </head>
 <body>
+  <header>FITS Image Reduction</header>
 
-  <h1>Upload Images for Reduction</h1>
+  <form method="POST" enctype="multipart/form-data" id="upload-form" novalidate>
 
-  {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      <div class="flash-message">
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
+    <section>
+        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+          <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
+            <img src="static/science.png" alt="Original science frame" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+            <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #3f51b5;">Before</figcaption>
+          </figure>
+          <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
+            <img src="static/reduced.png" alt="Reduced image result" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+            <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #009688;">After</figcaption>
+          </figure>
+        </div>
+      </section>
+      
+
+    <main>
+      <div class="upload-card science" tabindex="0" aria-label="Upload science frames">
+        <div class="upload-title">Science</div>
+        <div class="upload-subtitle">Required</div>
+        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <input id="science-input" name="science" type="file" multiple accept=".fits" />
+        <span class="file-count" id="science-count" aria-live="polite" aria-atomic="true">0</span>
+        <ul class="file-list" id="science-list"></ul>
       </div>
-    {% endif %}
-  {% endwith %}
 
-  <form method="POST" enctype="multipart/form-data" id="upload-form">
-
-    {% for category in ["science", "bias", "flat", "dark"] %}
-    <div class="dropzone" id="dropzone-{{ category }}" tabindex="0">
-      <label for="{{ category }}-input">
-        <strong>{{ category.capitalize() }} Frames</strong>
-        {% if category in ["science", "bias"] %}<span style="color: #d6336c;">(required)</span>{% endif %}<br>
-        Drag & drop or click to select multiple .fits files
-      </label>
-      <input id="{{ category }}-input" type="file" name="{{ category }}" multiple accept=".fits" />
-      <div class="file-list" id="{{ category }}-file-list">
-        {% if session[category] %}
-          <ul>
-          {% for f in session[category] %}
-            <li>
-              {{ f.split('/')[-1] }}
-              <button type="button" class="remove-file-btn" data-category="{{ category }}" data-filename="{{ f.split('/')[-1] }}" aria-label="Remove file">×</button>
-            </li>
-          {% endfor %}
-          </ul>
-        {% endif %}
+      <div class="upload-card bias" tabindex="0" aria-label="Upload bias frames">
+        <div class="upload-title">Bias</div>
+        <div class="upload-subtitle">Required</div>
+        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <input id="bias-input" name="bias" type="file" multiple accept=".fits" />
+        <span class="file-count" id="bias-count" aria-live="polite" aria-atomic="true">0</span>
+        <ul class="file-list" id="bias-list"></ul>
       </div>
-    </div>
-    {% endfor %}
 
-    <button type="submit">Reduce Images</button>
+      <div class="upload-card flat" tabindex="0" aria-label="Upload flat frames">
+        <div class="upload-title">Flat</div>
+        <div class="upload-subtitle">Optional</div>
+        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <input id="flat-input" name="flat" type="file" multiple accept=".fits" />
+        <span class="file-count" id="flat-count" aria-live="polite" aria-atomic="true">0</span>
+        <ul class="file-list" id="flat-list"></ul>
+      </div>
+
+      <div class="upload-card dark" tabindex="0" aria-label="Upload dark frames">
+        <div class="upload-title">Dark</div>
+        <div class="upload-subtitle">Optional</div>
+        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <input id="dark-input" name="dark" type="file" multiple accept=".fits" />
+        <span class="file-count" id="dark-count" aria-live="polite" aria-atomic="true">0</span>
+        <ul class="file-list" id="dark-list"></ul>
+      </div>
+    </main>
+
+    <footer>
+      <button type="submit" aria-label="Start image reduction process">Reduce Images</button>
+    </footer>
+
   </form>
 
   <script>
-    // Setup dropzones as before
-    function setupDropzone(dropzoneId, inputId, listId) {
-      const dropzone = document.getElementById(dropzoneId);
-      const input = document.getElementById(inputId);
-      const fileList = document.getElementById(listId);
+    const categories = ['science', 'bias', 'flat', 'dark'];
+    const categoryFiles = {
+      science: new DataTransfer(),
+      bias: new DataTransfer(),
+      flat: new DataTransfer(),
+      dark: new DataTransfer(),
+    };
+
+    categories.forEach(cat => {
+      const input = document.getElementById(`${cat}-input`);
+      const card = input.closest('.upload-card');
+      const fileList = document.getElementById(`${cat}-list`);
+      const fileCount = document.getElementById(`${cat}-count`);
 
       function updateFileList() {
         fileList.innerHTML = '';
-        if (input.files.length === 0) {
-          return;
-        }
-        const ul = document.createElement('ul');
-        for (const file of input.files) {
+        const files = categoryFiles[cat].files;
+        fileCount.textContent = files.length;
+
+        if (files.length === 0) return;
+
+        for (let i = 0; i < files.length; i++) {
           const li = document.createElement('li');
-          li.textContent = file.name;
-          ul.appendChild(li);
+          li.textContent = files[i].name;
+
+          const btn = document.createElement('button');
+          btn.className = 'remove-btn';
+          btn.setAttribute('aria-label', `Remove ${files[i].name}`);
+          btn.textContent = '×';
+
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            categoryFiles[cat].items.remove(i);
+            input.files = categoryFiles[cat].files;
+            updateFileList();
+          });
+
+          li.appendChild(btn);
+          fileList.appendChild(li);
         }
-        fileList.appendChild(ul);
       }
 
-      dropzone.addEventListener('click', () => input.click());
-
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('dragover');
-      });
-
-      dropzone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-      });
-
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-
-        const files = e.dataTransfer.files;
-        const dt = new DataTransfer();
-        for (const f of input.files) {
-          dt.items.add(f);
-        }
-        for (const f of files) {
-          dt.items.add(f);
-        }
-        input.files = dt.files;
-        updateFileList();
-      });
-
-      input.addEventListener('change', updateFileList);
-      updateFileList();
-    }
-
-    ['science', 'bias', 'flat', 'dark'].forEach(cat => {
-      setupDropzone(`dropzone-${cat}`, `${cat}-input`, `${cat}-file-list`);
-    });
-
-    // Remove file button functionality
-    document.querySelectorAll('.remove-file-btn').forEach(button => {
-      button.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const category = button.dataset.category;
-        const filename = button.dataset.filename;
-
-        if (!confirm(`Remove file "${filename}" from ${category}?`)) {
-          return;
-        }
-
-        try {
-          const response = await fetch('/remove_file', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category, filename })
-          });
-          const result = await response.json();
-
-          if (result.success) {
-            // Remove the <li> element from the UI
-            button.closest('li').remove();
-            alert(result.message);
-          } else {
-            alert('Failed to remove file: ' + result.message);
+      // Add files avoiding duplicates
+      function addFiles(newFiles) {
+        for (const file of newFiles) {
+          if (![...categoryFiles[cat].files].some(f => f.name === file.name)) {
+            categoryFiles[cat].items.add(file);
           }
-        } catch (err) {
-          alert('Error removing file.');
-          console.error(err);
         }
+        input.files = categoryFiles[cat].files;
+        updateFileList();
+      }
+
+      // Clicking card triggers input
+      card.addEventListener('click', () => input.click());
+
+      // Drag & drop handlers
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        card.style.boxShadow = `0 0 20px 5px var(--card-color)`;
       });
+      card.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        card.style.boxShadow = '';
+      });
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.style.boxShadow = '';
+        addFiles(e.dataTransfer.files);
+      });
+
+      // File input change
+      input.addEventListener('change', (e) => {
+        addFiles(e.target.files);
+      });
+
+      updateFileList();
     });
   </script>
 </body>

@@ -25,7 +25,7 @@ def create_median_dark(dark_list, bias_filename, median_dark_filename):
     - Return the median dark frame as a 2D numpy array.
 
     """
-    if dark_list and bias_filename:
+    if dark_list:
       bias = fits.getdata(bias_filename)
       dark_bias_data = []
       exp_times = []
@@ -58,9 +58,6 @@ def create_median_dark(dark_list, bias_filename, median_dark_filename):
 
       
       return median_dark
-    
-    elif dark_list and bias_filename==None:
-       raise ValueError("Bias frame filename is required and must exist for dark frame processing.")
     
     else:
        return

@@ -42,16 +42,23 @@ def reduce_science_frame(
 
     science_data = science[0].data[100:-100, 100:-100].astype('f4')
     median_bias = fits.getdata(median_bias_filename)
-    median_flat = fits.getdata(median_flat_filename)
-    median_dark = fits.getdata(median_dark_filename)
+
+    if median_flat_filename:
+      median_flat = fits.getdata(median_flat_filename)
+    if median_bias_filename:
+      median_dark = fits.getdata(median_dark_filename)
 
     # Exposure time of science to later use with median dark 
     exposure_time = science[0].header['EXPTIME']
 
     # Removes bias and dark frames, and corrects by dividing by flat frame
     science_data -= median_bias 
-    science_data -= exposure_time * median_dark
-    science_data /= median_flat
+
+    if median_dark:
+      science_data -= exposure_time * median_dark
+
+    if median_flat:
+      science_data /= median_flat
 
     # Removal of cosmic rays
     mask, cleaned = detect_cosmics(science_data)
