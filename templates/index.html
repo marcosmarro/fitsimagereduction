@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Reduction Upload</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      margin: 0; padding: 2rem;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 8px;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgb(0 0 0 / 0.1);
+    }
+
+    .dropzone {
+      border: 2px dashed #777;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+      background: #fafafa;
+      user-select: none;
+    }
+
+    .dropzone.dragover {
+      border-color: #007bff;
+      background: #e6f0ff;
+    }
+
+    .dropzone input[type="file"] {
+      display: none;
+    }
+
+    .file-list {
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      color: #555;
+      max-height: 100px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 0.5rem;
+      background: #f0f0f0;
+    }
+
+    .file-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .file-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+    }
+
+    .remove-file-btn {
+      background: transparent;
+      border: none;
+      color: #d6336c;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 0.5rem;
+      line-height: 1;
+      user-select: none;
+      transition: color 0.3s;
+    }
+
+    .remove-file-btn:hover {
+      color: #a71d2a;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .flash-message {
+      color: #d6336c;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Upload Images for Reduction</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-message">
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" enctype="multipart/form-data" id="upload-form">
+
+    {% for category in ["science", "bias", "flat", "dark"] %}
+    <div class="dropzone" id="dropzone-{{ category }}" tabindex="0">
+      <label for="{{ category }}-input">
+        <strong>{{ category.capitalize() }} Frames</strong>
+        {% if category in ["science", "bias"] %}<span style="color: #d6336c;">(required)</span>{% endif %}<br>
+        Drag & drop or click to select multiple .fits files
+      </label>
+      <input id="{{ category }}-input" type="file" name="{{ category }}" multiple accept=".fits" />
+      <div class="file-list" id="{{ category }}-file-list">
+        {% if session[category] %}
+          <ul>
+          {% for f in session[category] %}
+            <li>
+              {{ f.split('/')[-1] }}
+              <button type="button" class="remove-file-btn" data-category="{{ category }}" data-filename="{{ f.split('/')[-1] }}" aria-label="Remove file">×</button>
+            </li>
+          {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <button type="submit">Reduce Images</button>
+  </form>
+
+  <script>
+    // Setup dropzones as before
+    function setupDropzone(dropzoneId, inputId, listId) {
+      const dropzone = document.getElementById(dropzoneId);
+      const input = document.getElementById(inputId);
+      const fileList = document.getElementById(listId);
+
+      function updateFileList() {
+        fileList.innerHTML = '';
+        if (input.files.length === 0) {
+          return;
+        }
+        const ul = document.createElement('ul');
+        for (const file of input.files) {
+          const li = document.createElement('li');
+          li.textContent = file.name;
+          ul.appendChild(li);
+        }
+        fileList.appendChild(ul);
+      }
+
+      dropzone.addEventListener('click', () => input.click());
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+
+      dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+
+        const files = e.dataTransfer.files;
+        const dt = new DataTransfer();
+        for (const f of input.files) {
+          dt.items.add(f);
+        }
+        for (const f of files) {
+          dt.items.add(f);
+        }
+        input.files = dt.files;
+        updateFileList();
+      });
+
+      input.addEventListener('change', updateFileList);
+      updateFileList();
+    }
+
+    ['science', 'bias', 'flat', 'dark'].forEach(cat => {
+      setupDropzone(`dropzone-${cat}`, `${cat}-input`, `${cat}-file-list`);
+    });
+
+    // Remove file button functionality
+    document.querySelectorAll('.remove-file-btn').forEach(button => {
+      button.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const category = button.dataset.category;
+        const filename = button.dataset.filename;
+
+        if (!confirm(`Remove file "${filename}" from ${category}?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetch('/remove_file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ category, filename })
+          });
+          const result = await response.json();
+
+          if (result.success) {
+            // Remove the <li> element from the UI
+            button.closest('li').remove();
+            alert(result.message);
+          } else {
+            alert('Failed to remove file: ' + result.message);
+          }
+        } catch (err) {
+          alert('Error removing file.');
+          console.error(err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
