@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import zipfile
 from werkzeug.utils import secure_filename
-from flask import Flask, request, render_template, send_file, flash, session, redirect, url_for, jsonify
+from flask import Flask, request, render_template, send_file, flash, session, jsonify
 
 from reduction.reduce import reduce_science_images  # Your reduction function to implement
 
@@ -67,7 +67,7 @@ def upload_and_process():
                 output_dir=temp_dir
             )
 
-            zip_path = os.path.join(temp_dir, "reduced_images.zip")
+            zip_path = os.path.join(temp_dir, "reduced_science_images.zip")
             with zipfile.ZipFile(zip_path, "w") as zipf:
                 for filepath in reduced_paths:
                     zipf.write(filepath, arcname=os.path.basename(filepath))
@@ -75,7 +75,7 @@ def upload_and_process():
             return send_file(
                 zip_path,
                 as_attachment=True,
-                download_name="reduced_images.zip",
+                download_name="reduced_science_images.zip",
                 mimetype="application/zip"
             )
 

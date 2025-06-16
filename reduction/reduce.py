@@ -1,7 +1,5 @@
 import os
-import shutil
 import tempfile
-import glob
 from reduction.bias import create_median_bias
 from reduction.darks import create_median_dark
 from reduction.flats import create_median_flat
@@ -36,9 +34,9 @@ def reduce_science_images(bias_paths, flat_paths, dark_paths, science_paths, out
     median_flat_filename = os.path.join(temp_dir, 'Median-AutoFlat.fits')
 
     # Creates the medians from the list of biases, darks, and flats
-    median_bias = create_median_bias(bias_files, median_bias_filename)
-    median_dark = create_median_dark(dark_files, median_bias_filename, median_dark_filename)
-    median_flat = create_median_flat(flat_files, median_bias_filename, median_flat_filename, median_dark_filename)
+    create_median_bias(bias_files, median_bias_filename)
+    create_median_dark(dark_files, median_bias_filename, median_dark_filename)
+    create_median_flat(flat_files, median_bias_filename, median_flat_filename, median_dark_filename)
   
     reduced_paths = []
     

@@ -44,6 +44,7 @@
       display: flex;
       gap: 1.75rem;
       flex-wrap: nowrap;
+      align-items: flex-start;
       justify-content: space-between;
     }
 
@@ -85,8 +86,6 @@
     .bias    { --card-color: #ff5722; }
     .flat    { --card-color: #009688; }
     .dark    { --card-color: #607d8b; }
-
-    /* Removed icons */
 
     /* Card header */
     .upload-title {
@@ -146,19 +145,17 @@
       font-size: 1rem;
     }
 
-
     /* File list */
     .file-list {
-    width: 100%;
-    max-height: calc(15 * 1.6em); /* estimate ~1.6em per item */
-    overflow-y: auto;
-    margin-top: auto;
-    padding-left: 0;
-    list-style: none;
-    border-top: 1px solid #eee;
-    font-size: 0.9rem;
+      width: 100%;
+      max-height: calc(15 * 1.6em); /* estimate ~1.6em per item */
+      overflow-y: auto;
+      margin-top: auto;
+      padding-left: 0;
+      list-style: none;
+      border-top: 1px solid #eee;
+      font-size: 0.9rem;
     }
-
 
     .file-list li {
       padding: 0.35rem 0.4rem;
@@ -190,6 +187,31 @@
     .remove-btn:focus {
       color: #000;
       outline: none;
+    }
+
+    .clear-all-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: #999;
+      font-weight: 600;
+      font-size: 0.8rem;
+      margin-top: 0rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    .clear-all-btn:hover,
+    .clear-all-btn:focus {
+      color: #000;
+      text-decoration: underline;
+      outline: none;
+    }
+
+
+    /* Focus highlight for dragover */
+    .dragover-highlight {
+      box-shadow: 0 0 20px 5px var(--card-color) !important;
     }
 
     /* Footer sticky submit */
@@ -233,6 +255,8 @@
 <body>
   <header>FITS Image Reduction</header>
 
+  <div id="error-message" role="alert" aria-live="assertive" style="color:#d32f2f; font-weight: 600; margin-bottom: 0rem; min-height: 1.5em; text-align: center;"></div>
+
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <div style="margin: 1rem auto; max-width: 700px;">
@@ -245,57 +269,58 @@
     {% endif %}
   {% endwith %}
 
-
   <form method="POST" enctype="multipart/form-data" id="upload-form" novalidate>
-
     <section>
-        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
-          <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
-            <img src="static/science.png" alt="Original science frame" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
-            <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #3f51b5;">Before</figcaption>
-          </figure>
-          <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
-            <img src="static/reduced.png" alt="Reduced image result" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
-            <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #009688;">After</figcaption>
-          </figure>
-        </div>
-      </section>
-      
+      <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+        <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
+          <img src="static/science.png" alt="Original science frame" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+          <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #3f51b5;">Before</figcaption>
+        </figure>
+        <figure style="flex: 1 1 45%; text-align: center; max-width: 300px;">
+          <img src="static/reduced.png" alt="Reduced image result" style="width: 100%; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+          <figcaption style="margin-top: 0.5rem; font-weight: 600; color: #009688;">After</figcaption>
+        </figure>
+      </div>
+    </section>
 
     <main>
       <div class="upload-card science" tabindex="0" aria-label="Upload science frames">
         <div class="upload-title">Science</div>
         <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
-        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <div class="upload-instructions">Drag and drop or click here</div>
         <input id="science-input" name="science" type="file" multiple accept=".fits" />
         <span class="file-count" id="science-count" aria-live="polite" aria-atomic="true">0</span>
+        <button type="button" class="clear-all-btn" aria-label="Clear all files">🗑 Clear All</button>
         <ul class="file-list" id="science-list"></ul>
       </div>
 
       <div class="upload-card flat" tabindex="0" aria-label="Upload flat frames">
         <div class="upload-title">Flat</div>
         <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
-        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <div class="upload-instructions">Drag and drop or click here</div>
         <input id="flat-input" name="flat" type="file" multiple accept=".fits" />
         <span class="file-count" id="flat-count" aria-live="polite" aria-atomic="true">0</span>
+        <button type="button" class="clear-all-btn" aria-label="Clear all files">🗑 Clear All</button>
         <ul class="file-list" id="flat-list"></ul>
       </div>
 
       <div class="upload-card dark" tabindex="0" aria-label="Upload dark frames">
         <div class="upload-title">Dark</div>
         <div class="upload-subtitle"><span class="required-asterisk">*</span>Required</div>
-        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <div class="upload-instructions">Drag and drop or click here</div>
         <input id="dark-input" name="dark" type="file" multiple accept=".fits" />
         <span class="file-count" id="dark-count" aria-live="polite" aria-atomic="true">0</span>
+        <button type="button" class="clear-all-btn" aria-label="Clear all files">🗑 Clear All</button>
         <ul class="file-list" id="dark-list"></ul>
       </div>
 
       <div class="upload-card bias" tabindex="0" aria-label="Upload bias frames">
         <div class="upload-title">Bias</div>
         <div class="upload-subtitle">Optional</div>
-        <div class="upload-instructions">Drag & drop or click here to select files</div>
+        <div class="upload-instructions">Drag and drop or click here</div>
         <input id="bias-input" name="bias" type="file" multiple accept=".fits" />
         <span class="file-count" id="bias-count" aria-live="polite" aria-atomic="true">0</span>
+        <button type="button" class="clear-all-btn" aria-label="Clear all files">🗑 Clear All</button>
         <ul class="file-list" id="bias-list"></ul>
       </div>
     </main>
@@ -303,7 +328,6 @@
     <footer>
       <button type="submit" aria-label="Start image reduction process">Reduce Images</button>
     </footer>
-
   </form>
 
   <script>
@@ -315,7 +339,7 @@
       dark: new DataTransfer(),
     };
 
-    let startTime = performance.now(); // Start time tracking
+    let startTime = performance.now();
 
     categories.forEach(cat => {
       const input = document.getElementById(`${cat}-input`);
@@ -327,6 +351,14 @@
         fileList.innerHTML = '';
         const files = categoryFiles[cat].files;
         fileCount.textContent = files.length;
+
+        const clearBtn = card.querySelector('.clear-all-btn');
+        if (categoryFiles[cat].files.length > 0) {
+          clearBtn.style.display = 'inline-block';
+        } else {
+          clearBtn.style.display = 'none';
+        }
+
 
         if (files.length === 0) return;
 
@@ -366,21 +398,29 @@
       card.addEventListener('click', () => input.click());
       card.addEventListener('dragover', (e) => {
         e.preventDefault();
-        card.style.boxShadow = `0 0 20px 5px var(--card-color)`;
+        card.classList.add('dragover-highlight');
       });
       card.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        card.style.boxShadow = '';
+        card.classList.remove('dragover-highlight');
       });
       card.addEventListener('drop', (e) => {
         e.preventDefault();
-        card.style.boxShadow = '';
+        card.classList.remove('dragover-highlight');
         addFiles(e.dataTransfer.files);
       });
       input.addEventListener('change', (e) => {
         addFiles(e.target.files);
       });
 
+      const clearBtn = card.querySelector('.clear-all-btn');
+      clearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        categoryFiles[cat] = new DataTransfer();
+        input.files = categoryFiles[cat].files;
+        updateFileList();
+        updateSummary();
+      });
       updateFileList();
     });
 
@@ -389,10 +429,30 @@
       const totalFiles = categories.reduce((sum, cat) => sum + categoryFiles[cat].files.length, 0);
       const elapsedMs = performance.now() - startTime;
       const elapsedSec = (elapsedMs / 1000).toFixed(2);
-      const summary = document.getElementById('upload-summary');
-      summary.textContent = `${totalFiles} total file${totalFiles !== 1 ? 's' : ''} uploaded in ${elapsedSec} seconds.`;
-    }
-  </script>
+      let summary = document.getElementById('upload-summary');
 
+      // If summary element doesn't exist, create it once below the form
+      if (!summary) {
+        summary = document.createElement('div');
+        summary.id = 'upload-summary';
+        summary.style.cssText = 'margin: 1rem auto; max-width: 700px; text-align:center; font-weight:600; color:#3f51b5;';
+        document.querySelector('form').insertAdjacentElement('afterend', summary);
+      }
+
+    }
+
+    document.getElementById('upload-form').addEventListener('submit', function(e) {
+      const errorDiv = document.getElementById('error-message');
+      const required = ['science', 'flat', 'dark'];
+      const missing = required.filter(cat => categoryFiles[cat].files.length === 0);
+
+      if (missing.length > 0) {
+        e.preventDefault();
+        errorDiv.textContent = `Please upload required file${missing.length > 1 ? 's' : ''}: ${missing.join(', ')}`;
+      } else {
+        errorDiv.textContent = ''; // Clear error if valid
+      }
+    });
+  </script>
 </body>
 </html>

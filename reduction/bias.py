@@ -4,7 +4,6 @@
 # @Filename: bias.py
 # @License: BSD 3-clause (http://www.opensource.org/licenses/BSD-3-Clause)
 
-import os
 from astropy.io import fits
 from astropy.stats import sigma_clip
 import numpy

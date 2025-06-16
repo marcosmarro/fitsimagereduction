@@ -8,8 +8,6 @@ from astropy.io import fits
 from astropy.stats import sigma_clip
 import numpy
 import os
-from astropy.visualization import ImageNormalize, LinearStretch, ZScaleInterval
-from matplotlib import pyplot as plt
 
 def create_median_flat(
     flat_list,
