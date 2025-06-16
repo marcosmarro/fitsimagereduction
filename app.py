@@ -8,7 +8,7 @@ from flask import Flask, request, render_template, send_file, flash, session, js
 from reduction.reduce import reduce_science_images  # Your reduction function to implement
 
 app = Flask(__name__)
-app.secret_key = "replace-with-a-secure-random-key"  # Replace with your actual secret key
+app.secret_key = os.getenv("SECRET_KEY", "1234567890")
 
 @app.route("/", methods=["GET", "POST"])
 def upload_and_process():
@@ -20,8 +20,6 @@ def upload_and_process():
             flat_files = request.files.getlist("flat")
             dark_files = request.files.getlist("dark")
             science_files = request.files.getlist("science")
-
-            print(science_files)
 
             # Validate required uploads
             if not science_files or all(f.filename == '' for f in science_files):

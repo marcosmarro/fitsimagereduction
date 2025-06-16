@@ -20,7 +20,7 @@ def create_median_bias(bias_list, median_bias_filename):
     - Return the median bias frame as a 2D numpy array.
 
     """
-    # breakpoint()
+    
     if bias_list:
       bias_images = []
       
