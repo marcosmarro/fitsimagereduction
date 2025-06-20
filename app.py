@@ -81,11 +81,6 @@ def upload_and_process():
             flash(f"Unexpected error: {str(e)}")
             return render_template("index.html")
 
-        @after_this_request
-        def cleanup(response):
-            shutil.rmtree(temp_dir)
-            return response
-
 
     # For GET requests or after errors, render with current session filenames
     return render_template("index.html")
@@ -107,7 +102,3 @@ def remove_file():
         return jsonify({"success": True, "message": f"Removed {filename} from {category} files."})
 
     return jsonify({"success": False, "message": "File not found in session."}), 404
-
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
