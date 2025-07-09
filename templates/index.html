@@ -43,7 +43,7 @@
       /* Make a single row with 4 columns, no wrapping */
       display: flex;
       gap: 1.75rem;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       align-items: flex-start;
       justify-content: space-between;
     }
@@ -250,6 +250,14 @@
       box-shadow: 0 7px 25px rgba(44, 62, 153, 0.6);
       outline: none;
     }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
   </style>
 </head>
 <body>

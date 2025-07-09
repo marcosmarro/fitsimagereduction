@@ -1,6 +1,5 @@
 import os
 import tempfile
-import shutil
 import zipfile
 from werkzeug.utils import secure_filename
 from flask import Flask, request, render_template, send_file, flash, session, jsonify
