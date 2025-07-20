@@ -24,6 +24,7 @@ It removes sensor noise and optical imperfections from your science frames so yo
 - Instant download of reduced science images
 - Clean, simple user interface
 
+```
 fitsimagereduction/
 ├── app.py                # Main Flask application
 ├── wsgi.py               # WSGI entry point
@@ -32,6 +33,7 @@ fitsimagereduction/
 ├── templates/            # HTML templates
 ├── requirements.txt      # Dependencies
 └── README.md
+```
 
 ## Built With
 Python (Flask)
