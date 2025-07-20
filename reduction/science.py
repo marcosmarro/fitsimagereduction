@@ -7,6 +7,7 @@
 from astropy.io import fits
 from astroscrappy import detect_cosmics
 import os
+from astropy.wcs import WCS
 
 def reduce_science_frame(
     science_filename,
@@ -40,6 +41,17 @@ def reduce_science_frame(
     # Reads all the files and grabs their respective array
     science = fits.open(science_filename)
 
+    original_header = science[0].header
+    original_wcs = WCS(original_header)
+    cropped_wcs = original_wcs.slice((slice(100, -100), slice(100, -100)))
+    cropped_header = cropped_wcs.to_header()
+    for key in original_header:
+      if key in ('HISTORY', 'COMMENT'):
+         continue
+      if key not in cropped_header:
+        cropped_header[key] = original_header[key]
+
+
     science_data = science[0].data[100:-100, 100:-100].astype('f4')
 
     # Exposure time of science to later use with median dark 
@@ -61,7 +73,7 @@ def reduce_science_frame(
     reduced_science = cleaned
 
     # Create a new FITS file from the resulting reduced science frame.
-    science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=science[0].header)
+    science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=cropped_header)
     science_hdu.header['COMMENT'] = 'Reduced science image correcting from all 3 frames (bias, dark, and flat).'
     hdul = fits.HDUList([science_hdu])
     hdul.writeto(reduced_science_filename, overwrite=True)
