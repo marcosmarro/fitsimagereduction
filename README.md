@@ -31,6 +31,7 @@ fitsimagereduction/
 ├── reduction/            # Python code for image reduction
 ├── static/               # Before and after images
 ├── templates/            # HTML templates
+├── sample_data/          # Sample data to try out website
 ├── requirements.txt      # Dependencies
 └── README.md
 ```

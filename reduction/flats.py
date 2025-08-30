@@ -50,7 +50,7 @@ def create_median_flat(
     # Will read each file and append to dark_bias_data list where the arrays have dtype = float32
     for file in flat_list:
         flat = fits.open(file)
-        flat_data = flat[0].data[100:-100, 100:-100].astype('f4')
+        flat_data = flat[0].data[96:-96, 96:-96].astype('f4')
         flat_exptime = flat[0].header['EXPTIME']
         
         # Subtracts bias from each flat and adds to flat_bias_data list

@@ -26,7 +26,7 @@ def create_median_bias(bias_list, median_bias_filename):
       
       # Will read each file and append to bias_images list where the arrays have dtype = float32
       for bias in bias_list:
-          bias_data = fits.getdata(bias)[100:-100, 100:-100]
+          bias_data = fits.getdata(bias)[96:-96, 96:-96]
           bias_images.append(bias_data.astype('f4'))
 
       # Reads the list of biases and sigma clips the arrays

@@ -43,7 +43,7 @@ def reduce_science_frame(
 
     original_header = science[0].header
     original_wcs = WCS(original_header)
-    cropped_wcs = original_wcs.slice((slice(100, -100), slice(100, -100)))
+    cropped_wcs = original_wcs.slice((slice(96, -96), slice(96, -96)))
     cropped_header = cropped_wcs.to_header()
     for key in original_header:
       if key in ('HISTORY', 'COMMENT'):
@@ -52,7 +52,7 @@ def reduce_science_frame(
         cropped_header[key] = original_header[key]
 
 
-    science_data = science[0].data[100:-100, 100:-100].astype('f4')
+    science_data = science[0].data[96:-96, 96:-96].astype('f4')
 
     # Exposure time of science to later use with median dark 
     exposure_time = science[0].header['EXPTIME']

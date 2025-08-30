@@ -38,7 +38,7 @@ def create_median_dark(dark_list, median_bias_filename, median_dark_filename):
     # Will read each file and append to dark_bias_data list where the arrays have dtype = float32
     for file in dark_list:
         dark = fits.open(file)
-        dark_data = dark[0].data[100:-100, 100:-100].astype('f4')
+        dark_data = dark[0].data[96:-96, 96:-96].astype('f4')
         exptime = dark[0].header['EXPTIME']
         exp_times.append(exptime)
 
