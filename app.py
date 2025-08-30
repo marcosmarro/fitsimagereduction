@@ -1,6 +1,6 @@
 import os
-import tempfile
 import zipfile
+import tempfile
 from werkzeug.utils import secure_filename
 from flask import Flask, request, render_template, send_file, flash, session, jsonify
 
@@ -15,9 +15,9 @@ def upload_and_process():
         temp_dir = tempfile.mkdtemp()
 
         try:
-            bias_files = request.files.getlist("bias")
-            flat_files = request.files.getlist("flat")
-            dark_files = request.files.getlist("dark")
+            bias_files    = request.files.getlist("bias")
+            flat_files    = request.files.getlist("flat")
+            dark_files    = request.files.getlist("dark")
             science_files = request.files.getlist("science")
 
             # Validate required uploads
@@ -45,9 +45,9 @@ def upload_and_process():
                         paths.append(path)
                 return paths
 
-            bias_paths = save_files(bias_files, "bias")
-            flat_paths = save_files(flat_files, "flat")
-            dark_paths = save_files(dark_files, "dark")
+            bias_paths    = save_files(bias_files, "bias")
+            flat_paths    = save_files(flat_files, "flat")
+            dark_paths    = save_files(dark_files, "dark")
             science_paths = save_files(science_files, "science")
 
             # Save filenames in session for display
@@ -57,11 +57,11 @@ def upload_and_process():
             session["science"] = session.get("science", []) + [os.path.basename(p) for p in science_paths]
 
             reduced_paths = reduce_science_images(
-                bias_paths=bias_paths,
-                flat_paths=flat_paths,
-                dark_paths=dark_paths,
-                science_paths=science_paths,
-                output_dir=temp_dir
+                bias_files    = bias_paths,
+                dark_files    = dark_paths,
+                flat_files    = flat_paths,
+                science_files = science_paths,
+                output_dir    = temp_dir
             )
 
             zip_path = os.path.join(temp_dir, "reduced_science_images.zip")
