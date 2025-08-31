@@ -1,73 +1,84 @@
 #!/usr/bin/env python
 # @License: BSD 3-clause (http://www.opensource.org/licenses/BSD-3-Clause)
 
+import os
 import numpy as np
 from astropy.wcs import WCS
 from astropy.io import fits
 from astroscrappy import detect_cosmics
 
-def reduce_science_frame(
-    science_filename: str,
+def reduce_science_frames(
+    science_list: list,
     median_bias: np.ndarray,
-    median_flat: np.ndarray,
     median_dark: np.ndarray,
-    reduced_filename: str,
-):
-    """This function must:
+    median_flat: np.ndarray,
+    output_dir: str,
+) -> list:
+    """Reduces a list of science frames and writes each to a new file.
 
-    - Accept a science frame filename as science_filename.
-    - Accept a median bias frame filename as median_bias_filename (the one you created
-    using create_median_bias).
-    - Accept a median flat frame filename as median_flat_filename (the one you created
-    using create_median_flat).
-    - Accept a median dark frame filename as median_dark_filename (the one you created
-    using create_median_dark).
-    - Read all files.
-    - Subtract the bias frame from the science frame.
-    - Subtract the dark frame from the science frame. Remember to multiply the
-    dark frame by the exposure time of the science frame. The exposure time can
-    be found in the header of the FITS file.
-    - Correct the science frame using the flat frame.
-    - Optionally, remove cosmic rays.
-    - Save the resulting reduced science frame to a FITS file with the filename
-    reduced_science_filename.
-    - Return the reduced science frame as a 2D numpy array.
+    Reads in a list of filepaths to science frames to be reduced.
+    It goes through standard astrophotography correction process given
+    median bias, dark, and flat frames.
 
+    .. Follows the equation:: Reduced = (Science - Expsoure time * Dark - Bias) / Flat
+
+    It is then cosmic ray corrected to return final reduced frame.
+
+    Args:
+        science_filepath: filepath to science frame.
+        median_bias: 2D array of reduced median bias image.
+        median_dark: list of filepaths to dark images.
+        median_flat: 2D array of reduced median dark image.
+        output_dir: directory to write the reduced files
+
+    Returns:
+        reduced_paths: list of file paths to reduced science images saved to output_dir.
     """
+    reduced_paths = []
 
-    # Reads all the files and grabs their respective array
-    science = fits.open(science_filename)
+    for science_file in science_list:
+        basename  = os.path.basename(science_file)
+        reduced_filename = f"reduced_{basename}"
+        reduced_filepath = os.path.join(output_dir, reduced_filename)
+        
+        # Reads all the files and grabs their respective array
+        science = fits.open(science_file)
 
-    original_header = science[0].header
-    original_wcs    = WCS(original_header)
-    cropped_wcs     = original_wcs.slice((slice(96, -96), slice(96, -96)))
-    cropped_header  = cropped_wcs.to_header()
+        # Slices data array to tranfer all of the header information to the reduced file
+        original_header = science[0].header
+        original_wcs    = WCS(original_header)
+        cropped_wcs     = original_wcs.slice((slice(96, -96), slice(96, -96)))
+        cropped_header  = cropped_wcs.to_header()
 
-    for key in original_header:
-        if key in ('HISTORY', 'COMMENT'):
-            continue
-        if key not in cropped_header:
-            cropped_header[key] = original_header[key]
+        for key in original_header:
+            if key in ('HISTORY', 'COMMENT'):
+                continue
+            if key not in cropped_header:
+                cropped_header[key] = original_header[key]
 
-    science_data = science[0].data[96:-96, 96:-96].astype('f4')
+        science_data  = science[0].data[96:-96, 96:-96].astype('f4')
 
-    # Exposure time of science to later use with median dark 
-    exposure_time = science[0].header['EXPTIME']
+        # Exposure time of science to later use with median dark 
+        exposure_time = science[0].header['EXPTIME']
 
-    # Removes bias is user inputs bias image
-    if median_bias is not None:
-        science_data -= median_bias 
+        # Removes bias is user inputs bias image
+        if median_bias is not None:
+            science_data -= median_bias 
 
-    # Removes dark frame and divides out by flat image
-    science_data -= exposure_time * median_dark
-    science_data /= median_flat
+        # Removes dark frame and divides out by flat image
+        science_data -= exposure_time * median_dark
+        science_data /= median_flat
 
-    # Removal of cosmic rays
-    mask, cleaned   = detect_cosmics(science_data)
-    reduced_science = cleaned
+        # Removal of cosmic rays
+        mask, cleaned   = detect_cosmics(science_data)
+        reduced_science = cleaned
 
-    # Create a new FITS file from the resulting reduced science frame.
-    science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=cropped_header)
-    science_hdu.header['COMMENT'] = 'Reduced science image correcting from all 3 frames (bias, dark, and flat).'
-    hdul = fits.HDUList([science_hdu])
-    hdul.writeto(reduced_filename, overwrite=True)
+        # Create a new FITS file from the resulting reduced science frame.
+        science_hdu = fits.PrimaryHDU(data=reduced_science.data, header=cropped_header)
+        science_hdu.header['COMMENT'] = "Reduced science image correcting from inputed frames."
+        hdul = fits.HDUList([science_hdu])
+        hdul.writeto(reduced_filepath, overwrite=True)
+
+        reduced_paths.append(reduced_filepath)
+    
+    return reduced_paths
