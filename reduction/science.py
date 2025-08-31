@@ -6,7 +6,7 @@ from astropy.wcs import WCS
 from astropy.io import fits
 from astroscrappy import detect_cosmics
 
-def reduce_science_images(
+def reduce_science_frame(
     science_filename: str,
     median_bias: np.ndarray,
     median_flat: np.ndarray,

@@ -5,7 +5,7 @@ import os
 from reduction.bias import create_median_bias
 from reduction.darks import create_median_dark
 from reduction.flats import create_median_flat
-from reduction.science import reduce_science_images
+from reduction.science import reduce_science_frame
 
 def reduce_science_images(
     bias_files: list, 
@@ -41,7 +41,7 @@ def reduce_science_images(
         reduced_filename = f"reduced_{name}{ext}"
         reduced_filepath = os.path.join(output_dir, reduced_filename)
         
-        reduce_science_images(
+        reduce_science_frame(
             science_filename = science_file,
             median_bias      = bias,
             median_flat      = flat,
